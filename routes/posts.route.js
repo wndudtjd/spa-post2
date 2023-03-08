@@ -20,23 +20,22 @@ router.post('/posts', authMiddleware, async (req, res) => {
 
 // 게시글 조회 API
 router.get('/posts', async (req, res) => {
-  const posts = await Post.find({}, { _id: false }).sort('-createdAt')
+  const dataAll = await Post.find({}).sort('-createdAt') // createdAt 내림차순
 
-  return res.status(200).json({
-    success: true,
-    posts,
-  })
+  res.status(200).json({ data: dataAll }) // 넣기
 })
 
 // 게시글 상세 조회 API
 router.get('/posts/:postId', async (req, res) => {
   const { postId } = req.params
-  const post = await Post.findById({ _id: postId }, { _id: false })
+  const currentPost = await Post.findOne({ _id: postId })
 
-  return res.status(200).json({
-    success: true,
-    post,
-  })
+  // 게시글이 없을때
+  if (!currentPost.length) {
+    return res.status(400).json({ success: false, errorMessage: '게시글이 존재하지 않습니다.' })
+  }
+
+  res.status(200).json({ currentPost }) // 넣기
 })
 
 // 게시글 수정 API
@@ -129,7 +128,7 @@ router.delete('/posts/:postId', authMiddleware, async (req, res) => {
       return
     }
     // 삭제할 게시글 조회
-    await Posts.deleteOne({ _id: postId })
+    await Post.deleteOne({ _id: postId })
     // 게시글 삭제
     if (deleteData) {
       res.status(200).json({ message: '게시글을 삭제하였습니다.' })

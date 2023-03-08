@@ -3,7 +3,7 @@ const router = express.Router()
 const Comments = require('../schemas/comment')
 const authMiddleware = require('../middlewares/auth-middleware')
 
-// 댓글 작성 API
+// 댓글 생성 API
 router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
   const { postId } = req.params
   const { comment } = req.body
@@ -32,7 +32,6 @@ router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
       comment: comment,
       nickname: user.nickname,
       createdAt: new Date(),
-      updatedAt: new Date(),
     })
     res.status(201).json({ message: '댓글 작성에 성공하였습니다.' })
   } catch (err) {
@@ -45,20 +44,13 @@ router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
   }
 })
 
-// 댓글 조회 API
+// 댓글 목록 조회 API
 router.get('/posts/:postId/comments', async (req, res) => {
-  try {
-    const comments = await Comments.find().sort('-createdAt')
+  const { postId } = req.params
 
-    res.status(200).json({ comments })
-  } catch (err) {
-    console.error(err)
+  const comments = await Comments.find({ _id: postId }).sort('createdAt')
 
-    res.status(400).json({
-      errorMessage: '댓글 조회에 실패하였습니다.',
-    })
-    return
-  }
+  res.status(200).json({ data: comments })
 })
 
 // 댓글 수정 API
@@ -67,18 +59,18 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
   const { comment } = req.body
   const user = res.locals.user
 
-  const updateData = await Comments.findOne({ _id: commentId })
+  const currentComments = await Comments.findOne({ _id: commentId })
 
   try {
-    // 게시글이 존재하지 않은 경우
+    // 게시글이 없을 때
     if (!postId) {
       res.status(404).json({
         errorMessage: '게시글이 존재하지 않습니다.',
       })
       return
     }
-    // 로그인한 회원의 닉네임과 해당 게시글의 댓글 작성한 닉네임이 다른 경우
-    if (updateData.nickname !== user.nickname) {
+    // 닉네임이 서로 다를때
+    if (currentComments.nickname !== user.nickname) {
       res.status(403).json({
         errorMessage: '댓글 수정의 권한이 존재하지 않습니다.',
       })
@@ -93,7 +85,7 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
     }
     await Comments.updateOne({ _id: commentId }, { $set: { comment: comment, updatedAt: new Date() } })
 
-    if (updateData) {
+    if (currentComments) {
       res.status(200).json({
         message: '댓글을 수정하였습니다.',
       })
@@ -116,27 +108,27 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
 // 댓글 삭제 API
 router.delete('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
   const { postId, commentId } = req.params
-  const user = res.locals.user // 토큰을 검사하여, 유효한 토큰일 경우에만 댓글 삭제 가능
+  const user = res.locals.user
   // console.log(user);
-  const deleteData = await Comments.findOne({ _id: commentId })
+  const currentComments = await Comments.findOne({ _id: commentId })
 
   try {
-    // 게시글이 존재하지 않는 경우
+    // 게시글이 없을 때
     if (!postId) {
       res.status(404).json({
         errorMessage: '게시글이 존재하지 않습니다.',
       })
       return
     }
-    // 댓글이 존재하지 않는 경우
-    if (!deleteData) {
+    // 댓글이 없을 때
+    if (!currentComments) {
       res.status(404).json({
         errorMessage: '댓글이 존재하지 않습니다.',
       })
       return
     }
-    // 로그인한 회원의 닉네임과 해당 게시글 작성한 닉네임이 다른 경우
-    if (deleteData.nickname !== user.nickname) {
+    // 닉네임이 서로 다를때
+    if (currentComments.nickname !== user.nickname) {
       res.status(403).json({
         errorMessage: '댓글의 삭제의 권한이 존재하지 않습니다.',
       })
@@ -145,7 +137,7 @@ router.delete('/posts/:postId/comments/:commentId', authMiddleware, async (req, 
     // 삭제할 게시글 조회
     await Comments.deleteOne({ _id: commentId })
     // 게시글 삭제
-    if (deleteData) {
+    if (currentComments) {
       res.status(200).json({ message: '댓글을 삭제하였습니다.' })
       return
     } else {
