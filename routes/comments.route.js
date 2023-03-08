@@ -5,11 +5,11 @@ const authMiddleware = require('../middlewares/auth-middleware')
 
 // 댓글 작성 API
 router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
-  try {
-    const { postId } = req.params
-    const { comment } = req.body
-    const user = res.locals.user
+  const { postId } = req.params
+  const { comment } = req.body
+  const user = res.locals.user
 
+  try {
     // 게시글 미존재
     if (!postId) {
       res.status(404).json({
@@ -63,12 +63,13 @@ router.get('/posts/:postId/comments', async (req, res) => {
 
 // 댓글 수정 API
 router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
-  try {
-    const { postId, commentId } = req.params
-    const { comment } = req.body
-    const user = res.locals.user
+  const { postId, commentId } = req.params
+  const { comment } = req.body
+  const user = res.locals.user
 
-    const updateData = await Comments.findOne({ _id: commentId })
+  const updateData = await Comments.findOne({ _id: commentId })
+
+  try {
     // 게시글이 존재하지 않은 경우
     if (!postId) {
       res.status(404).json({
@@ -114,11 +115,12 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
 
 // 댓글 삭제 API
 router.delete('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
+  const { postId, commentId } = req.params
+  const user = res.locals.user // 토큰을 검사하여, 유효한 토큰일 경우에만 댓글 삭제 가능
+  // console.log(user);
+  const deleteData = await Comments.findOne({ _id: commentId })
+
   try {
-    const { postId, commentId } = req.params
-    const user = res.locals.user // 토큰을 검사하여, 유효한 토큰일 경우에만 댓글 삭제 가능
-    // console.log(user);
-    const deleteData = await Comments.findOne({ _id: commentId })
     // 게시글이 존재하지 않는 경우
     if (!postId) {
       res.status(404).json({

@@ -41,13 +41,13 @@ router.get('/posts/:postId', async (req, res) => {
 
 // 게시글 수정 API
 router.put('/posts/:postId', authMiddleware, async (req, res) => {
+  const { postId } = req.params
+  const { title, content } = req.body
+  const user = res.locals.user
+
+  const updateData = await Post.find({ _id: postId })
+
   try {
-    const { postId } = req.params
-    const { title, content } = req.body
-    const user = res.locals.user
-
-    const updateData = await Post.find({ _id: postId })
-
     // 데이터 형식이 올바르지 않음
     if (!updateData) {
       res.status(412).json({
@@ -108,11 +108,12 @@ router.put('/posts/:postId', authMiddleware, async (req, res) => {
 
 // 게시글 삭제 API
 router.delete('/posts/:postId', authMiddleware, async (req, res) => {
-  try {
-    const { postId } = req.params
-    const user = req.locals.user
+  const { postId } = req.params
+  const user = req.locals.user
 
-    const deleteData = await Post.FindOne({ _id: postId })
+  const deleteData = await Post.FindOne({ _id: postId })
+
+  try {
     // 게시글이 존재하지 않는 경우
     if (!deleteData) {
       res.status(404).json({
