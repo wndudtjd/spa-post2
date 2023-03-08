@@ -10,7 +10,7 @@ const commentSchema = new mongoose.Schema(
     },
     // 게시글 ID
     postId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: postSchema,
       required: true,
     },
