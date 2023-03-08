@@ -4,7 +4,7 @@ const Comments = require('../schemas/comment')
 const authMiddleware = require('../middlewares/auth-middleware')
 
 // 댓글 생성 API
-router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
+router.post('/comments/:postId', authMiddleware, async (req, res) => {
   const { postId } = req.params
   const { comment } = req.body
   const user = res.locals.user
@@ -45,16 +45,14 @@ router.post('/posts/:psotId/comments', authMiddleware, async (req, res) => {
 })
 
 // 댓글 목록 조회 API
-router.get('/posts/:postId/comments', async (req, res) => {
-  const { postId } = req.params
-
-  const comments = await Comments.find({ _id: postId }).sort('createdAt')
+router.get('/comments/:postId', async (req, res) => {
+  const comments = await Comments.find().sort('createdAt')
 
   res.status(200).json({ data: comments })
 })
 
 // 댓글 수정 API
-router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
+router.put('/comments/:commentId', authMiddleware, async (req, res) => {
   const { postId, commentId } = req.params
   const { comment } = req.body
   const user = res.locals.user
@@ -106,7 +104,7 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
 })
 
 // 댓글 삭제 API
-router.delete('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
+router.delete('/comments/:commentId', authMiddleware, async (req, res) => {
   const { postId, commentId } = req.params
   const user = res.locals.user
   // console.log(user);

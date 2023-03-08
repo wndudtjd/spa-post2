@@ -15,7 +15,7 @@ const commentSchema = new mongoose.Schema(
       required: true,
     },
     // 댓글 내용
-    content: {
+    comment: {
       type: String,
       required: true,
     },
